@@ -1,0 +1,5 @@
+glow_env/
+venv/
+__pycache__/
+.env
+*.pyc

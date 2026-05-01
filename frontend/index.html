@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GlowAI - Premium Skincare Consultant</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Styles -->
+    <link rel="stylesheet" href="/app/styles.css">
+</head>
+<body>
+
+    <!-- Background Decoration -->
+    <div class="bg-blur decoration-1"></div>
+    <div class="bg-blur decoration-2"></div>
+
+    <!-- API Key Modal -->
+    <div class="modal-overlay active" id="apiKeyModal">
+        <div class="modal glass-panel">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-wand-magic-sparkles"></i> Welcome to GlowAI</h2>
+                <p>Enter your Hugging Face Token to start your personalized skincare consultation.</p>
+            </div>
+            <div class="modal-body">
+                <input type="password" id="apiKeyInput" placeholder="Enter HF Access Token..." />
+                <button id="saveApiKeyBtn" class="btn primary-btn">Start Chatting</button>
+            </div>
+            <div class="modal-footer">
+                <small>Or set it in your backend .env file and leave this blank if already configured.</small>
+                <button id="skipApiKeyBtn" class="btn text-btn">Skip</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Application -->
+    <main class="app-container glass-panel">
+        
+        <!-- Sidebar: Skin Profile -->
+        <aside class="sidebar">
+            <div class="brand">
+                <i class="fa-solid fa-leaf"></i>
+                <h1>GlowAI</h1>
+            </div>
+            
+            <div class="profile-section">
+                <h3>Your Skin Profile</h3>
+                <div class="profile-empty" id="profileEmptyState">
+                    Give us a few details in the chat so we can understand your skin!
+                </div>
+                <!-- Profile details populated dynamically -->
+                <div id="profileContent" class="profile-content hidden">
+                    <div class="profile-item" id="prof-type-container" style="display: none;">
+                        <span class="label">Skin Type</span>
+                        <div class="tag-group" id="prof-type"></div>
+                    </div>
+                    <div class="profile-item" id="prof-conditions-container" style="display: none;">
+                        <span class="label">Conditions</span>
+                        <div class="tag-group" id="prof-conditions"></div>
+                    </div>
+                    <div class="profile-item" id="prof-concerns-container" style="display: none;">
+                        <span class="label">Concerns</span>
+                        <div class="tag-group" id="prof-concerns"></div>
+                    </div>
+                    <div class="profile-item" id="prof-areas-container" style="display: none;">
+                        <span class="label">Problem Areas</span>
+                        <div class="tag-group" id="prof-areas"></div>
+                    </div>
+                    <div class="profile-item" id="prof-sensitivities-container" style="display: none;">
+                        <span class="label">Sensitivities</span>
+                        <div class="tag-group" id="prof-sensitivities"></div>
+                    </div>
+                    <div class="profile-item" id="prof-budget-container" style="display: none;">
+                        <span class="label">Budget</span>
+                        <div class="tag-group" id="prof-budget"></div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Chat Area -->
+        <section class="chat-area">
+            <div class="chat-header">
+                <div class="agent-info">
+                    <div class="avatar online">
+                        <i class="fa-solid fa-robot"></i>
+                    </div>
+                    <div>
+                        <h2>GlowAI Assistant</h2>
+                        <span class="status">Online</span>
+                    </div>
+                </div>
+                <button class="btn icon-btn" id="resetBtn" title="Reset Conversation">
+                    <i class="fa-solid fa-arrow-rotate-right"></i>
+                </button>
+            </div>
+
+            <div class="chat-history" id="chatHistory">
+                <!-- Initial Welcome Message -->
+                <div class="message assistant">
+                    <div class="message-content">
+                        Hello! I am GlowAI ✨.<br><br>
+                        I'm here to analyze your skin and recommend the perfect products based on actual reviews. Tell me a bit about your skin type and concerns to get started!
+                    </div>
+                </div>
+                <!-- Messages will be injected here -->
+                
+                <!-- Typing Indicator (Hidden by default) -->
+                <div class="typing-indicator" id="typingIndicator">
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                </div>
+            </div>
+
+            <div class="chat-input-area">
+                <div class="input-wrapper">
+                    <input type="text" id="userInput" placeholder="E.g., My skin is oily but feels dry in the winter..." autocomplete="off">
+                    <button class="btn primary-btn icon-btn send-btn" id="sendBtn">
+                        <i class="fa-solid fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script src="/app/app.js"></script>
+</body>
+</html>
