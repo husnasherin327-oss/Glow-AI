@@ -1,6 +1,6 @@
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
-# ── 1. NER / Entity Extraction ────────────────────────────────────────────────
+
 EXTRACTION_PROMPT = ChatPromptTemplate.from_messages([
     ("system", """You are a skincare NLP extractor.
 Return ONLY valid JSON. 
@@ -15,7 +15,7 @@ Return ONLY valid JSON.
     ("human", "{message}"),
 ])
 
-# ── 2. Conversational Chat ────────────────────────────────────────────────────
+
 CHAT_PROMPT = ChatPromptTemplate.from_messages([
     ("system", """You are GlowAI ✨, a friendly skincare expert.
 Skin profile: {skin_profile}
@@ -26,7 +26,7 @@ Rules:
     ("human", "{message}"),
 ])
 
-# ── 3. Product Recommendation ─────────────────────────────────────────────────
+
 RECOMMENDATION_PROMPT = ChatPromptTemplate.from_messages([
     ("system", """You are a skincare recommendation engine.
 Return ONLY valid JSON. No markdown.
