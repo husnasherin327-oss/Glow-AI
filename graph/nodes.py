@@ -1,13 +1,8 @@
 import json
 import re
-from typing import Any
 
-# ── FIX: bypass langchain-huggingface entirely ────────────────────────────────
-# HuggingFaceEndpoint internally calls InferenceClient.post() which was
-# REMOVED in huggingface-hub 1.x. Use InferenceClient.text_generation() directly.
-from huggingface_hub import InferenceClient
-# ─────────────────────────────────────────────────────────────────────────────
-
+from google import genai
+from google.genai import types
 from langchain_core.messages import HumanMessage, AIMessage
 from duckduckgo_search import DDGS
 
@@ -15,39 +10,48 @@ from core.config import settings
 from graph.state import SkincareState
 
 
-# ── LLM helpers ───────────────────────────────────────────────────────────────
+# ── Gemini Client ─────────────────────────────────────────────────────────────
 
-def make_client(api_key: str) -> InferenceClient:
-    return InferenceClient(
-        model=settings.HF_MODEL,
-        token=api_key,
+def make_model(api_key: str, temperature: float = 0.7):
+    """Configure Gemini and return a GenerativeModel instance."""
+    genai.configure(api_key=api_key)
+    return genai.GenerativeModel(
+        model_name=settings.GEMINI_MODEL,
+        generation_config=genai.GenerationConfig(
+            temperature=temperature,
+            max_output_tokens=2048,
+        )
     )
 
 
-def call_llm(client: InferenceClient, system: str, user: str,
-             temperature: float = 0.7, max_tokens: int = 1024) -> str:
-    response = client.chat_completion(
-        messages=[
-            {"role": "system", "content": system},
-            {"role": "user", "content": user}
-        ],
-        max_tokens=max_tokens,
-        temperature=temperature,
+def call_llm(api_key: str, system: str, user: str, temperature: float = 0.7) -> str:
+    client = genai.Client(api_key=api_key)
+    response = client.models.generate_content(
+        model=settings.GEMINI_MODEL,
+        contents=user,
+        config=types.GenerateContentConfig(
+            system_instruction=system,
+            temperature=temperature,
+            max_output_tokens=2048,
+        )
     )
-    return response.choices[0].message.content.strip()
+    return response.text.strip()
 
 
-# ── General helpers ───────────────────────────────────────────────────────────
+# ── General Helpers ───────────────────────────────────────────────────────────
 
 def parse_json(text: str) -> dict:
+    """Robust JSON parser — strips markdown fences, finds first {...} block."""
     text = text.strip()
     text = re.sub(r"```json\s*", "", text)
     text = re.sub(r"```\s*", "", text)
     text = text.strip()
+
     try:
         return json.loads(text)
     except json.JSONDecodeError:
         pass
+
     match = re.search(r"\{[\s\S]*\}", text)
     if match:
         candidate = match.group()
@@ -57,11 +61,13 @@ def parse_json(text: str) -> dict:
             return json.loads(candidate)
         except json.JSONDecodeError:
             pass
+
     print(f"FAILED TO PARSE JSON: {text[:200]}...")
     return {}
 
 
 def merge_profile(existing: dict, new_data: dict) -> dict:
+    """Merge extracted entities into running skin profile (set union for lists)."""
     updated = dict(existing)
     if new_data.get("skin_type"):
         updated["skin_type"] = new_data["skin_type"]
@@ -76,6 +82,7 @@ def merge_profile(existing: dict, new_data: dict) -> dict:
 
 
 def profile_ready(profile: dict) -> bool:
+    """True when skin_type + at least one concern/condition is present."""
     has_type = bool(profile.get("skin_type"))
     has_concern = bool(
         profile.get("conditions") or
@@ -106,11 +113,10 @@ def build_history_text(messages: list) -> str:
 
 def extract_entities_node(state: SkincareState, api_key: str) -> SkincareState:
     print("--- NODE: extract_entities ---")
-    client = make_client(api_key)
     last_message = get_last_human_message(state["messages"])
 
     system = """You are a skincare NLP extractor.
-Return ONLY valid JSON with this exact schema — no extra text, no markdown:
+Return ONLY valid JSON — no markdown, no extra text, no explanation:
 {
   "skin_type": "dry" or "oily" or "combination" or "normal" or "sensitive" or null,
   "conditions": [],
@@ -121,7 +127,7 @@ Return ONLY valid JSON with this exact schema — no extra text, no markdown:
 }"""
 
     try:
-        result = call_llm(client, system, last_message, temperature=0.1, max_tokens=512)
+        result = call_llm(api_key, system, last_message, temperature=0.1)
         print(f"Extraction result: {result}")
         extracted = parse_json(result)
     except Exception as e:
@@ -137,24 +143,25 @@ Return ONLY valid JSON with this exact schema — no extra text, no markdown:
 
 def chat_node(state: SkincareState, api_key: str) -> SkincareState:
     print("--- NODE: chat ---")
-    client = make_client(api_key)
     last_message = get_last_human_message(state["messages"])
     history_text = build_history_text(state["messages"])
     profile_str = json.dumps(state.get("skin_profile", {}), indent=2)
 
-    system = f"""You are GlowAI, a warm and knowledgeable skincare expert.
+    system = f"""You are GlowAI ✨, a warm and knowledgeable skincare expert.
 Current skin profile collected so far: {profile_str}
+
 Rules:
-- Ask ONE short follow-up question to gather missing info (skin type → conditions → concerns → budget).
+- Ask ONE short follow-up question to gather the most important missing info.
+- Priority order: skin type → conditions → concerns → budget.
 - Be concise, warm, and encouraging.
 - Do NOT recommend products yet."""
 
     user = f"{history_text}\nUser: {last_message}" if history_text else last_message
 
     try:
-        reply = call_llm(client, system, user, temperature=0.7, max_tokens=512)
+        reply = call_llm(api_key, system, user, temperature=0.7)
     except Exception as e:
-        reply = f"I'm having trouble connecting. Please check your API key. Error: {str(e)}"
+        reply = f"I'm having a little trouble right now. Could you try again? Error: {str(e)}"
 
     return {**state, "response_type": "chat", "final_message": reply}
 
@@ -193,7 +200,6 @@ def search_node(state: SkincareState) -> SkincareState:
 
 def recommend_node(state: SkincareState, api_key: str) -> SkincareState:
     print("--- NODE: recommend ---")
-    client = make_client(api_key)
 
     search_context = state.get("search_results", "").strip()
     fallback_note = ""
@@ -201,7 +207,7 @@ def recommend_node(state: SkincareState, api_key: str) -> SkincareState:
         fallback_note = "No web results found — use your expert skincare knowledge."
 
     system = """You are a skincare product recommendation engine.
-Return ONLY valid JSON — no markdown, no extra text:
+Return ONLY valid JSON — no markdown, no extra text whatsoever:
 {
   "message": "warm intro sentence",
   "skin_analysis": {
@@ -221,7 +227,7 @@ Return ONLY valid JSON — no markdown, no extra text:
     }
   ]
 }
-Always recommend exactly 3 products."""
+Always recommend exactly 3 real products."""
 
     user = f"""Skin profile:
 {json.dumps(state.get("skin_profile", {}), indent=2)}
@@ -233,7 +239,7 @@ Search context:
 Recommend 3 products for this skin profile."""
 
     try:
-        result = call_llm(client, system, user, temperature=0.5, max_tokens=2048)
+        result = call_llm(api_key, system, user, temperature=0.4)
         print(f"Recommendation raw: {result[:300]}...")
         parsed = parse_json(result)
     except Exception as e:
