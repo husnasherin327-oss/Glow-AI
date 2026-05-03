@@ -1,15 +1,9 @@
-"""
-GlowAI — Streamlit Frontend
-Run : streamlit run streamlit_app.py
-URL : http://localhost:8501
-"""
-
 import streamlit as st
 from langchain_core.messages import HumanMessage, AIMessage
 from graph.workflow import build_graph
 from core.config import settings
 
-# ── Page config (MUST be first Streamlit call) ────────────────────────────────
+
 st.set_page_config(
     page_title="GlowAI — Premium Skincare Consultant",
     page_icon="🌿",
@@ -17,7 +11,7 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# ── Custom CSS ────────────────────────────────────────────────────────────────
+#css
 st.markdown("""
 <style>
 /* Dark background */
@@ -130,7 +124,7 @@ section[data-testid="stSidebar"] {
 """, unsafe_allow_html=True)
 
 
-# ── Session state init ────────────────────────────────────────────────────────
+
 if "messages"     not in st.session_state: st.session_state.messages     = []
 if "skin_profile" not in st.session_state: st.session_state.skin_profile = {}
 if "products"     not in st.session_state: st.session_state.products     = []
@@ -138,14 +132,13 @@ if "skin_analysis"not in st.session_state: st.session_state.skin_analysis= None
 if "graph_cache"  not in st.session_state: st.session_state.graph_cache  = {}
 
 
-# ── Graph helper ──────────────────────────────────────────────────────────────
+
 def get_graph(api_key: str):
     if api_key not in st.session_state.graph_cache:
         st.session_state.graph_cache[api_key] = build_graph(api_key)
     return st.session_state.graph_cache[api_key]
 
 
-# ── Sidebar ───────────────────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown("## 🌿 GlowAI")
     st.markdown("<p style='color:#94a3b8;font-size:13px;'>AI Skincare Consultant</p>",
@@ -170,7 +163,7 @@ with st.sidebar:
 
     st.divider()
 
-    # Skin Profile display
+  
     st.markdown("### 🧴 Your Skin Profile")
     profile = st.session_state.skin_profile
 
@@ -209,7 +202,7 @@ with st.sidebar:
 
     st.divider()
 
-    # Reset button
+   
     if st.button("↺ Reset Conversation", use_container_width=True):
         st.session_state.messages      = []
         st.session_state.skin_profile  = {}
@@ -224,7 +217,7 @@ with st.sidebar:
     )
 
 
-# ── Main area ─────────────────────────────────────────────────────────────────
+
 st.markdown("<div class='glow-title'>🌿 GlowAI</div>", unsafe_allow_html=True)
 st.markdown(
     "<p style='color:#94a3b8;margin-top:0;margin-bottom:24px;'>"
@@ -232,7 +225,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# ── Chat history display ──────────────────────────────────────────────────────
+
 if not st.session_state.messages:
     with st.chat_message("assistant", avatar="✨"):
         st.markdown(
@@ -245,7 +238,7 @@ for msg in st.session_state.messages:
     with st.chat_message(role, avatar="🧴" if role == "assistant" else "👤"):
         st.markdown(msg["content"])
 
-# ── Product recommendations display ──────────────────────────────────────────
+
 if st.session_state.products:
     st.divider()
     st.markdown("### 💄 Your Personalized Recommendations")
@@ -264,7 +257,7 @@ if st.session_state.products:
         </div>
         """, unsafe_allow_html=True)
 
-    # Product cards in columns
+  
     cols = st.columns(len(st.session_state.products))
     for col, p in zip(cols, st.session_state.products):
         if not isinstance(p, dict):
@@ -295,22 +288,22 @@ if st.session_state.products:
             """, unsafe_allow_html=True)
 
 
-# ── Chat input ────────────────────────────────────────────────────────────────
+
 user_input = st.chat_input("E.g., My skin is oily and I have acne on my cheeks...")
 
 if user_input:
-    # Validate API key
+   
     active_key = (api_key or "").strip() or settings.GEMINI_API_KEY
     if not active_key or active_key == "YOUR_GEMINI_API_KEY_HERE":
         with st.chat_message("assistant", avatar="✨"):
             st.warning("⚠️ Please enter your Gemini API key in the sidebar.")
         st.stop()
 
-    # Show user message immediately
+   
     with st.chat_message("user", avatar="👤"):
         st.markdown(user_input)
 
-    # Build LangGraph message history
+   
     lc_messages = []
     for msg in st.session_state.messages:
         if msg["role"] == "user":
@@ -329,7 +322,7 @@ if user_input:
         "final_message":  "",
     }
 
-    # Run pipeline with spinner
+  
     with st.chat_message("assistant", avatar="✨"):
         with st.spinner("GlowAI is thinking..."):
             try:
