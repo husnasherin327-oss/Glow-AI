@@ -50,14 +50,14 @@ app.add_middleware(
 
 app.include_router(chat_router)
 
-# ── Frontend Static Files ─────────────────────────────────────────────────────
+
 frontend_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), "frontend")
 print(f"Frontend path: {frontend_path}")
 print(f"Frontend exists: {os.path.exists(frontend_path)}")
 
 if os.path.exists(frontend_path):
     app.mount("/app", StaticFiles(directory=frontend_path), name="frontend")
-# ─────────────────────────────────────────────────────────────────────────────
+
 
 
 @app.get("/health", tags=["System"])
