@@ -10,7 +10,7 @@ from core.config import settings
 from graph.state import SkincareState
 
 
-# ── Gemini Client ─────────────────────────────────────────────────────────────
+
 
 def make_model(api_key: str, temperature: float = 0.7):
     """Configure Gemini and return a GenerativeModel instance."""
@@ -38,7 +38,7 @@ def call_llm(api_key: str, system: str, user: str, temperature: float = 0.7) -> 
     return response.text.strip()
 
 
-# ── General Helpers ───────────────────────────────────────────────────────────
+
 
 def parse_json(text: str) -> dict:
     """Robust JSON parser — strips markdown fences, finds first {...} block."""
@@ -109,7 +109,7 @@ def build_history_text(messages: list) -> str:
     return "\n".join(lines)
 
 
-# ── Node 1: Entity Extraction ─────────────────────────────────────────────────
+
 
 def extract_entities_node(state: SkincareState, api_key: str) -> SkincareState:
     print("--- NODE: extract_entities ---")
@@ -139,7 +139,7 @@ Return ONLY valid JSON — no markdown, no extra text, no explanation:
     return {**state, "skin_profile": updated_profile}
 
 
-# ── Node 2: Conversational Chat ───────────────────────────────────────────────
+
 
 def chat_node(state: SkincareState, api_key: str) -> SkincareState:
     print("--- NODE: chat ---")
@@ -166,7 +166,7 @@ Rules:
     return {**state, "response_type": "chat", "final_message": reply}
 
 
-# ── Node 3: Web Search (RAG) ──────────────────────────────────────────────────
+
 
 def search_node(state: SkincareState) -> SkincareState:
     print("--- NODE: search ---")
@@ -196,7 +196,7 @@ def search_node(state: SkincareState) -> SkincareState:
     return {**state, "search_results": combined[:5000]}
 
 
-# ── Node 4: Product Recommendation ───────────────────────────────────────────
+
 
 def recommend_node(state: SkincareState, api_key: str) -> SkincareState:
     print("--- NODE: recommend ---")
@@ -259,7 +259,7 @@ Recommend 3 products for this skin profile."""
     }
 
 
-# ── Conditional Router ────────────────────────────────────────────────────────
+
 
 def route_after_extraction(state: SkincareState) -> str:
     if profile_ready(state.get("skin_profile", {})):
