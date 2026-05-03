@@ -1,11 +1,8 @@
 from functools import partial
 
-# ── BUG FIX #4 ────────────────────────────────────────────────────────────────
-# WRONG (old): from langgraph.graph import StateGraph, END
-# `set_entry_point()` is deprecated in langgraph 1.x.
-# Import START and use add_edge(START, "first_node") instead.
+
 from langgraph.graph import StateGraph, START, END
-# ─────────────────────────────────────────────────────────────────────────────
+
 
 from graph.state import SkincareState
 from graph.nodes import (
@@ -54,8 +51,7 @@ def build_graph(api_key: str):
     builder.add_node("search", search_node)
     builder.add_node("recommend", recommend)
 
-    # BUG FIX: replace deprecated set_entry_point() with add_edge from START
-    # OLD: builder.set_entry_point("extract")
+   
     builder.add_edge(START, "extract")
 
     # Conditional routing after extraction
