@@ -3,7 +3,7 @@ glow_env/
 
 # Secret keys
 .env
-core/config.py
+
 
 # Python cache
 __pycache__/
