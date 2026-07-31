@@ -25,8 +25,10 @@ def make_model(api_key: str, temperature: float = 0.7):
 
 
 def call_llm(api_key: str, system: str, user: str, temperature: float = 0.7) -> str:
+    print("MODEL =", settings.GEMINI_MODEL, flush=True)
+
     client = genai.Client(api_key=api_key)
-    print("MODEL =", settings.GEMINI_MODEL)
+
     response = client.models.generate_content(
         model=settings.GEMINI_MODEL,
         contents=user,
@@ -34,8 +36,9 @@ def call_llm(api_key: str, system: str, user: str, temperature: float = 0.7) -> 
             system_instruction=system,
             temperature=temperature,
             max_output_tokens=2048,
-        )
+        ),
     )
+
     return response.text.strip()
 
 
