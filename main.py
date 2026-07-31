@@ -4,6 +4,8 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 import uvicorn
 import os
+import google.genai
+print("Google GenAI SDK:", google.genai.__file__)
 
 from core.config import settings
 from routes.chat import router as chat_router
