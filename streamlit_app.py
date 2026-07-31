@@ -376,8 +376,33 @@ div[data-testid="stAlert"]{
     .hero-sub{ font-size: 0.92rem; }
     .block-container{ padding-left: 1rem; padding-right: 1rem; }
 }
+
+/* ---------- Remove Streamlit black bottom bar ---------- */
+
+[data-testid="stBottomBlockContainer"]{
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+[data-testid="stBottom"]{
+    background: transparent !important;
+}
+
+[data-testid="stChatInputContainer"]{
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+footer{
+    display:none !important;
+}
+
 </style>
 """, unsafe_allow_html=True)
+
+
 
 
 # ──────────────────────────────────────────────────────────────────────────
