@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     APP_PORT: int = 8000
 
     GEMINI_API_KEY: str = "YOUR_GEMINI_API_KEY_HERE"
-    GEMINI_MODEL: str = "gemini-1.5-flash"
+    GEMINI_MODEL: str = "gemini-2.5-flash"
 
     ALLOWED_ORIGINS: List[str] = ["*"]
 
