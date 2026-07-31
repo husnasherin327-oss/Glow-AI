@@ -26,6 +26,7 @@ def make_model(api_key: str, temperature: float = 0.7):
 
 def call_llm(api_key: str, system: str, user: str, temperature: float = 0.7) -> str:
     client = genai.Client(api_key=api_key)
+    print("MODEL =", settings.GEMINI_MODEL)
     response = client.models.generate_content(
         model=settings.GEMINI_MODEL,
         contents=user,
